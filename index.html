@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Neurosynth Terms Viewer</title>
-  <link rel="stylesheet" crossorigin href="/neurosynth-frontend-mikashih/assets/index-Co0Ylvva.css">
+  <link rel="stylesheet" crossorigin href="/neurosynth-frontend-mikashih/assets/index-QUgVwbBo.css">
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
   <div class="container mx-auto px-4 py-8">
@@ -85,24 +85,36 @@
     </div>
 
     <!-- Results Display -->
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-6xl mx-auto">
       <div class="bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
         <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-4 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
             </svg>
-            <h2 class="text-white font-semibold text-lg">JSON 回應資料</h2>
+            <h2 class="text-white font-semibold text-lg">可搜尋的術語列表</h2>
+            <span id="termCount" class="hidden bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold"></span>
           </div>
-          <button 
-            id="copyBtn"
-            class="text-gray-300 hover:text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-700 transition-all flex items-center gap-2 border border-gray-600 hover:border-gray-500"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-            </svg>
-            複製
-          </button>
+          <div class="flex gap-2">
+            <button 
+              id="viewToggle"
+              class="text-gray-300 hover:text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-700 transition-all flex items-center gap-2 border border-gray-600 hover:border-gray-500"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+              <span id="viewToggleText">顯示 JSON</span>
+            </button>
+            <button 
+              id="copyBtn"
+              class="text-gray-300 hover:text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-700 transition-all flex items-center gap-2 border border-gray-600 hover:border-gray-500"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+              </svg>
+              複製
+            </button>
+          </div>
         </div>
         <div class="p-6 bg-gray-50">
           <div id="loading" class="flex flex-col items-center justify-center py-16">
@@ -110,9 +122,38 @@
               <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
               <div class="absolute top-0 left-0 rounded-full h-16 w-16 border-t-4 border-indigo-400 animate-ping"></div>
             </div>
-            <p class="mt-4 text-gray-600 font-medium">載入中...</p>
+            <p class="mt-4 text-gray-600 font-medium">載入術語中...</p>
           </div>
-          <pre id="output" class="hidden bg-gray-900 text-green-400 p-6 rounded-lg overflow-x-auto text-sm leading-relaxed max-h-96 overflow-y-auto font-mono shadow-inner"></pre>
+          
+          <!-- Search and Filter -->
+          <div id="searchSection" class="hidden mb-6">
+            <div class="flex gap-4">
+              <div class="flex-1 relative">
+                <input 
+                  type="text" 
+                  id="searchInput"
+                  placeholder="搜尋術語..."
+                  class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+                />
+                <svg class="w-5 h-5 text-gray-400 absolute left-4 top-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </div>
+              <select id="sortSelect" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 shadow-sm">
+                <option value="default">預設排序</option>
+                <option value="az">A-Z 排序</option>
+                <option value="za">Z-A 排序</option>
+              </select>
+            </div>
+            <p id="filterInfo" class="mt-2 text-sm text-gray-600"></p>
+          </div>
+
+          <!-- Terms Grid View -->
+          <div id="termsGrid" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+
+          <!-- JSON View -->
+          <pre id="jsonOutput" class="hidden bg-gray-900 text-green-400 p-6 rounded-lg overflow-x-auto text-sm leading-relaxed max-h-96 overflow-y-auto font-mono shadow-inner"></pre>
+          
           <div id="errorDisplay" class="hidden">
             <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg shadow-md">
               <div class="flex items-start">
@@ -186,14 +227,18 @@
   <script>
     // State management
     let isLoading = false;
+    let allTerms = [];
+    let filteredTerms = [];
+    let currentView = 'grid'; // 'grid' or 'json'
     const API_URL = 'https://hpc.psy.ntu.edu.tw:5000/terms';
 
     // DOM elements
     const fetchBtn = document.getElementById('fetchBtn');
     const clearBtn = document.getElementById('clearBtn');
     const copyBtn = document.getElementById('copyBtn');
+    const viewToggle = document.getElementById('viewToggle');
+    const viewToggleText = document.getElementById('viewToggleText');
     const btnText = document.getElementById('btnText');
-    const output = document.getElementById('output');
     const loading = document.getElementById('loading');
     const errorDisplay = document.getElementById('errorDisplay');
     const errorMessage = document.getElementById('errorMessage');
@@ -202,6 +247,13 @@
     const statusText = document.getElementById('statusText');
     const statusDetail = document.getElementById('statusDetail');
     const statusBadge = document.getElementById('statusBadge');
+    const termsGrid = document.getElementById('termsGrid');
+    const jsonOutput = document.getElementById('jsonOutput');
+    const searchSection = document.getElementById('searchSection');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    const filterInfo = document.getElementById('filterInfo');
+    const termCount = document.getElementById('termCount');
 
     // Fetch terms using AJAX
     async function fetchTerms() {
@@ -213,9 +265,11 @@
       
       // Show loading state
       loading.classList.remove('hidden');
-      output.classList.add('hidden');
+      termsGrid.classList.add('hidden');
+      jsonOutput.classList.add('hidden');
       errorDisplay.classList.add('hidden');
       statusBar.classList.add('hidden');
+      searchSection.classList.add('hidden');
 
       try {
         const startTime = performance.now();
@@ -231,16 +285,17 @@
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const contentType = response.headers.get('content-type') || '';
-        let data;
-
-        if (contentType.includes('application/json')) {
-          data = await response.json();
-          displayResult(JSON.stringify(data, null, 2));
-        } else {
-          data = await response.text();
-          displayResult(data);
-        }
+        const data = await response.json();
+        
+        // Store terms
+        allTerms = Array.isArray(data) ? data : (data.terms || []);
+        filteredTerms = [...allTerms];
+        
+        // Display results
+        displayTermsGrid();
+        jsonOutput.textContent = JSON.stringify(data, null, 2);
+        searchSection.classList.remove('hidden');
+        updateFilterInfo();
 
       } catch (error) {
         displayError(error);
@@ -252,18 +307,110 @@
       }
     }
 
-    // Display successful result
-    function displayResult(text) {
-      output.textContent = text;
-      output.classList.remove('hidden');
-      errorDisplay.classList.add('hidden');
+    // Display terms in grid view
+    function displayTermsGrid() {
+      termsGrid.innerHTML = '';
+      
+      if (filteredTerms.length === 0) {
+        termsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">沒有找到符合的術語</div>';
+        termsGrid.classList.remove('hidden');
+        return;
+      }
+
+      filteredTerms.forEach(term => {
+        const termCard = document.createElement('div');
+        termCard.className = 'bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:shadow-lg transition-all duration-200 cursor-pointer group';
+        termCard.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-medium text-gray-800 group-hover:text-blue-600 transition-colors">${escapeHtml(term)}</span>
+            <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+        `;
+        
+        // Copy term on click
+        termCard.addEventListener('click', () => {
+          copyToClipboard(term);
+          termCard.classList.add('border-green-500', 'bg-green-50');
+          setTimeout(() => {
+            termCard.classList.remove('border-green-500', 'bg-green-50');
+          }, 1000);
+        });
+        
+        termsGrid.appendChild(termCard);
+      });
+      
+      termsGrid.classList.remove('hidden');
+      termCount.textContent = `${filteredTerms.length} 個術語`;
+      termCount.classList.remove('hidden');
+    }
+
+    // Filter and sort terms
+    function filterAndSortTerms() {
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      const sortOption = sortSelect.value;
+      
+      // Filter
+      filteredTerms = allTerms.filter(term => 
+        term.toLowerCase().includes(searchTerm)
+      );
+      
+      // Sort
+      if (sortOption === 'az') {
+        filteredTerms.sort((a, b) => a.localeCompare(b));
+      } else if (sortOption === 'za') {
+        filteredTerms.sort((a, b) => b.localeCompare(a));
+      }
+      
+      displayTermsGrid();
+      updateFilterInfo();
+    }
+
+    // Update filter info
+    function updateFilterInfo() {
+      if (searchInput.value.trim()) {
+        filterInfo.textContent = `顯示 ${filteredTerms.length} / ${allTerms.length} 個術語`;
+      } else {
+        filterInfo.textContent = `共 ${allTerms.length} 個可搜尋術語`;
+      }
+    }
+
+    // Toggle view between grid and JSON
+    function toggleView() {
+      if (currentView === 'grid') {
+        currentView = 'json';
+        termsGrid.classList.add('hidden');
+        jsonOutput.classList.remove('hidden');
+        searchSection.classList.add('hidden');
+        viewToggleText.textContent = '顯示術語';
+      } else {
+        currentView = 'grid';
+        termsGrid.classList.remove('hidden');
+        jsonOutput.classList.add('hidden');
+        searchSection.classList.remove('hidden');
+        viewToggleText.textContent = '顯示 JSON';
+      }
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
     }
 
     // Display error
     function displayError(error) {
       errorMessage.textContent = error.message || String(error);
       errorDisplay.classList.remove('hidden');
-      output.classList.add('hidden');
+      termsGrid.classList.add('hidden');
+      jsonOutput.classList.add('hidden');
       
       statusIcon.innerHTML = '<span class="text-3xl">❌</span>';
       statusText.textContent = '請求失敗';
@@ -292,37 +439,55 @@
 
     // Clear output
     function clearOutput() {
-      output.textContent = '';
-      output.classList.add('hidden');
+      termsGrid.innerHTML = '';
+      termsGrid.classList.add('hidden');
+      jsonOutput.textContent = '';
+      jsonOutput.classList.add('hidden');
       errorDisplay.classList.add('hidden');
       statusBar.classList.add('hidden');
+      searchSection.classList.add('hidden');
       loading.classList.remove('hidden');
+      allTerms = [];
+      filteredTerms = [];
+      searchInput.value = '';
+      sortSelect.value = 'default';
+      termCount.classList.add('hidden');
     }
 
     // Copy to clipboard
-    async function copyToClipboard() {
-      const text = output.textContent;
-      if (!text) return;
+    async function copyToClipboard(text = null) {
+      const contentToCopy = text || (currentView === 'json' ? jsonOutput.textContent : filteredTerms.join('\n'));
+      
+      if (!contentToCopy) return;
 
       try {
-        await navigator.clipboard.writeText(text);
-        copyBtn.textContent = '✅ 已複製！';
+        await navigator.clipboard.writeText(contentToCopy);
+        
+        const originalText = copyBtn.innerHTML;
+        copyBtn.innerHTML = `
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          已複製
+        `;
+        copyBtn.classList.add('text-green-400');
+        
         setTimeout(() => {
-          copyBtn.textContent = '📋 複製';
+          copyBtn.innerHTML = originalText;
+          copyBtn.classList.remove('text-green-400');
         }, 2000);
       } catch (err) {
         console.error('Failed to copy:', err);
-        copyBtn.textContent = '❌ 複製失敗';
-        setTimeout(() => {
-          copyBtn.textContent = '📋 複製';
-        }, 2000);
       }
     }
 
     // Event listeners
     fetchBtn.addEventListener('click', fetchTerms);
     clearBtn.addEventListener('click', clearOutput);
-    copyBtn.addEventListener('click', copyToClipboard);
+    copyBtn.addEventListener('click', () => copyToClipboard());
+    viewToggle.addEventListener('click', toggleView);
+    searchInput.addEventListener('input', filterAndSortTerms);
+    sortSelect.addEventListener('change', filterAndSortTerms);
 
     // Initial fetch on page load
     fetchTerms();
