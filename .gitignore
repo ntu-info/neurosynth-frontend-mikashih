@@ -3,7 +3,7 @@ node_modules/
 package-lock.json
 
 # Build output
-dist/
+# dist/  # 取消註解以允許推送 dist 到 gh-pages 分支
 build/
 
 # Environment variables
