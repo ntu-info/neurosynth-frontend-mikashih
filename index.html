@@ -1,524 +1,384 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neurosynth ML Decoding - Home</title>
-  <link rel="stylesheet" href="/main.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MIL Terms Explorer (Tailwind + AJAX)</title>
+  <!-- Tailwind CDN：免安裝即可使用 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 純裝飾：滑動切換過場 */
+    .tab { display: none; }
+    .tab.active { display: block; animation: fade .2s ease; }
+    @keyframes fade { from{opacity:0} to{opacity:1} }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen">
-  <div class="container mx-auto px-4 py-8">
-    
-    <!-- Navigation -->
-    <nav class="mb-8">
-      <div class="bg-white rounded-xl shadow-md p-4 border border-gray-200">
-        <div class="flex items-center justify-between flex-wrap gap-4">
-          <div class="flex items-center gap-2 text-sm text-gray-600">
-            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-            </svg>
-            <span class="font-semibold">首頁</span>
-          </div>
-          <a href="/terms.html" class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition-all shadow-md hover:shadow-lg transform hover:scale-105">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-            </svg>
-            <span>瀏覽術語</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-            </svg>
-          </a>
-        </div>
-      </div>
-    </nav>
-
+<body class="bg-slate-50 text-slate-900">
+  <main class="container mx-auto max-w-6xl p-4 md:p-8 space-y-6">
     <!-- Header -->
-    <header class="text-center mb-10">
-      <div class="inline-block mb-4">
-        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-5 rounded-2xl shadow-2xl">
-          <span class="text-6xl">🧠</span>
+    <header class="rounded-2xl p-6 md:p-8 text-white shadow bg-gradient-to-r from-indigo-500 to-violet-600">
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-bold">🧠 MIL Terms Explorer</h1>
+          <p class="text-white/90">公開前端，用 AJAX 方式呼叫 API：<code>/terms</code>、<code>/terms/&lt;t1&gt;</code>、<code>/query/&lt;q_string&gt;/studies</code></p>
+        </div>
+        <div class="bg-white/15 rounded-xl px-3 py-2 text-sm flex items-center gap-2">
+          <span>API Base URL：</span>
+          <input id="apiBase" class="bg-white/20 rounded-lg px-2 py-1 w-[320px] focus:outline-none" value="https://mil.psy.ntu.edu.tw:5000" />
         </div>
       </div>
-      <h1 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-3">
-        Neurosynth ML Decoding
-      </h1>
-      <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-2">
-        機器學習驅動的神經影像逆向推論系統
-      </p>
-      <p class="text-md text-gray-500 max-w-3xl mx-auto">
-        從大腦激活模式推斷相關術語 · Brain Activation Pattern → Terms
-      </p>
-      <div class="mt-6 inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 px-5 py-2 rounded-full border-2 border-blue-200 shadow-sm">
-        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-        <span class="text-sm text-blue-700 font-semibold">Neurosynth API 已連線</span>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button data-tab="terms" class="tab-btn rounded-xl bg-white/20 px-3 py-1 text-sm font-semibold hover:bg-white/30">/terms</button>
+        <button data-tab="assoc" class="tab-btn rounded-xl bg-white/20 px-3 py-1 text-sm font-semibold hover:bg-white/30">/terms/&lt;t1&gt;</button>
+        <button data-tab="query" class="tab-btn rounded-xl bg-white/20 px-3 py-1 text-sm font-semibold hover:bg-white/30">/query/&lt;q_string&gt;/studies</button>
+        <span id="globalStatus" class="ml-auto text-sm text-white/80">狀態：就緒</span>
       </div>
     </header>
 
-    <!-- Control Panel -->
-    <div class="max-w-4xl mx-auto mb-6">
-      <div class="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-        <div class="flex items-center justify-between flex-wrap gap-4">
-          <div class="flex-1">
-            <div class="flex items-center gap-3">
-              <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-3 rounded-lg shadow-md">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
-              </div>
-              <div>
-                <h2 class="text-lg font-semibold text-gray-800">即時查詢</h2>
-                <p class="text-sm text-gray-500">從 Neurosynth API 獲取術語資料</p>
-              </div>
-            </div>
+    <!-- /terms 所有詞彙 -->
+    <section id="tab-terms" class="tab active">
+      <div class="bg-white rounded-xl shadow p-5 space-y-3">
+        <h2 class="text-xl font-semibold">/terms：所有可用詞彙</h2>
+        <form id="form-terms" class="grid grid-cols-1 sm:grid-cols-6 gap-3 items-end">
+          <div class="sm:col-span-3">
+            <label class="block text-sm text-slate-600 mb-1">（可選）過濾前綴 prefix</label>
+            <input id="termsPrefix" placeholder="例如：post、hippo（留空=不過濾）" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
           </div>
-          <div class="flex gap-3">
-            <button 
-              id="fetchBtn"
-              class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 flex items-center gap-2"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-              <span id="btnText">重新載入</span>
-            </button>
-            <button 
-              id="clearBtn"
-              class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 flex items-center gap-2"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-              </svg>
-              <span>清除</span>
-            </button>
+          <div>
+            <label class="block text-sm text-slate-600 mb-1">（可選）limit</label>
+            <input id="termsLimit" type="number" min="1" placeholder="如 100" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
           </div>
+          <div>
+            <label class="block text-sm text-slate-600 mb-1">（可選）offset</label>
+            <input id="termsOffset" type="number" min="0" placeholder="如 0" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
+          </div>
+          <button id="btn-terms" class="sm:col-span-1 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white shadow hover:bg-indigo-500 active:bg-indigo-700 transition disabled:opacity-60">查詢</button>
+        </form>
+        <p id="status-terms" class="text-sm text-slate-500">狀態：尚未查詢</p>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-indigo-600 text-white">
+              <tr>
+                <th class="px-3 py-2 text-left">#</th>
+                <th class="px-3 py-2 text-left">Term</th>
+                <th class="px-3 py-2 text-right">Weight / Count</th>
+              </tr>
+            </thead>
+            <tbody id="rows-terms" class="[&>tr:nth-child(odd)]:bg-slate-50"></tbody>
+          </table>
+        </div>
+        <div class="text-sm text-slate-500">提示：若後端回傳 HTML（表格），本頁也會自動解析。</div>
+      </div>
+    </section>
+
+    <!-- /terms/<t1> 關聯詞彙 -->
+    <section id="tab-assoc" class="tab">
+      <div class="bg-white rounded-xl shadow p-5 space-y-3">
+        <h2 class="text-xl font-semibold">/terms/&lt;t1&gt;：查詢與 t1 關聯的詞彙</h2>
+        <form id="form-assoc" class="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
+          <div class="sm:col-span-3">
+            <label class="block text-sm text-slate-600 mb-1">Term t1（必填）</label>
+            <input id="assocT1" required placeholder="例如：posterior_cingulate" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
+          </div>
+          <div>
+            <label class="block text-sm text-slate-600 mb-1">（可選）limit</label>
+            <input id="assocLimit" type="number" min="1" placeholder="如 100" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
+          </div>
+          <button id="btn-assoc" class="sm:col-span-1 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white shadow hover:bg-indigo-500 active:bg-indigo-700 transition disabled:opacity-60">查詢</button>
+        </form>
+        <p class="text-slate-600">顯示：與 <span id="show-assocT1" class="font-semibold">（未填）</span> 的相關詞彙</p>
+        <p id="status-assoc" class="text-sm text-slate-500">狀態：尚未查詢</p>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-indigo-600 text-white">
+              <tr>
+                <th class="px-3 py-2 text-left">#</th>
+                <th class="px-3 py-2 text-left">Related Term</th>
+                <th class="px-3 py-2 text-right">Weight / Score</th>
+              </tr>
+            </thead>
+            <tbody id="rows-assoc" class="[&>tr:nth-child(odd)]:bg-slate-50"></tbody>
+          </table>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Status Bar -->
-    <div class="max-w-4xl mx-auto mb-4">
-      <div id="statusBar" class="hidden bg-gradient-to-r from-white to-gray-50 rounded-lg shadow-lg p-5 border border-gray-200">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <div id="statusIcon" class="text-3xl"></div>
-            <div>
-              <div id="statusText" class="font-semibold text-gray-800 text-lg"></div>
-              <div id="statusDetail" class="text-sm text-gray-600 mt-1"></div>
-            </div>
+    <!-- /query/<q_string>/studies 邏輯搜尋 -->
+    <section id="tab-query" class="tab">
+      <div class="bg-white rounded-xl shadow p-5 space-y-3">
+        <h2 class="text-xl font-semibold">/query/&lt;q_string&gt;/studies：邏輯搜尋</h2>
+        <form id="form-query" class="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
+          <div class="sm:col-span-3">
+            <label class="block text-sm text-slate-600 mb-1">q_string（必填）</label>
+            <input id="queryStr" required placeholder="例如：posterior_cingulate AND NOT ventromedial_prefrontal" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
           </div>
-          <div id="statusBadge"></div>
+          <div>
+            <label class="block text-sm text-slate-600 mb-1">（可選）limit</label>
+            <input id="queryLimit" type="number" min="1" placeholder="如 100" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
+          </div>
+          <button id="btn-query" class="sm:col-span-1 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white shadow hover:bg-indigo-500 active:bg-indigo-700 transition disabled:opacity-60">查詢</button>
+        </form>
+        <p class="text-slate-600">查詢語句將自動 URL encode，例：空白、AND/OR/NOT 皆會被正確編碼。</p>
+        <p id="status-query" class="text-sm text-slate-500">狀態：尚未查詢</p>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-indigo-600 text-white">
+              <tr>
+                <th class="px-3 py-2 text-left">#</th>
+                <th class="px-3 py-2 text-left">Study ID</th>
+                <th class="px-3 py-2 text-left">Title / Summary</th>
+                <th class="px-3 py-2 text-right">Score</th>
+              </tr>
+            </thead>
+            <tbody id="rows-query" class="[&>tr:nth-child(odd)]:bg-slate-50"></tbody>
+          </table>
         </div>
       </div>
-    </div>
-
-    <!-- Results Display -->
-    <div class="max-w-6xl mx-auto">
-      <div class="bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
-        <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-4 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-            </svg>
-            <h2 class="text-white font-semibold text-lg">可搜尋的術語列表</h2>
-            <span id="termCount" class="hidden bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold"></span>
-          </div>
-          <div class="flex gap-2">
-            <button 
-              id="viewToggle"
-              class="text-gray-300 hover:text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-700 transition-all flex items-center gap-2 border border-gray-600 hover:border-gray-500"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-              </svg>
-              <span id="viewToggleText">顯示 JSON</span>
-            </button>
-            <button 
-              id="copyBtn"
-              class="text-gray-300 hover:text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-700 transition-all flex items-center gap-2 border border-gray-600 hover:border-gray-500"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-              </svg>
-              複製
-            </button>
-          </div>
-        </div>
-        <div class="p-6 bg-gray-50">
-          <div id="loading" class="flex flex-col items-center justify-center py-16">
-            <div class="relative">
-              <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
-              <div class="absolute top-0 left-0 rounded-full h-16 w-16 border-t-4 border-indigo-400 animate-ping"></div>
-            </div>
-            <p class="mt-4 text-gray-600 font-medium">載入術語中...</p>
-          </div>
-          
-          <!-- Search and Filter -->
-          <div id="searchSection" class="hidden mb-6">
-            <div class="flex gap-4">
-              <div class="flex-1 relative">
-                <input 
-                  type="text" 
-                  id="searchInput"
-                  placeholder="搜尋術語..."
-                  class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
-                />
-                <svg class="w-5 h-5 text-gray-400 absolute left-4 top-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-              </div>
-              <select id="sortSelect" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 shadow-sm">
-                <option value="default">預設排序</option>
-                <option value="az">A-Z 排序</option>
-                <option value="za">Z-A 排序</option>
-              </select>
-            </div>
-            <p id="filterInfo" class="mt-2 text-sm text-gray-600"></p>
-          </div>
-
-          <!-- Terms Grid View -->
-          <div id="termsGrid" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
-
-          <!-- JSON View -->
-          <pre id="jsonOutput" class="hidden bg-gray-900 text-green-400 p-6 rounded-lg overflow-x-auto text-sm leading-relaxed max-h-96 overflow-y-auto font-mono shadow-inner"></pre>
-          
-          <div id="errorDisplay" class="hidden">
-            <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg shadow-md">
-              <div class="flex items-start">
-                <div class="flex-shrink-0">
-                  <svg class="h-6 w-6 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                  </svg>
-                </div>
-                <div class="ml-3 flex-1">
-                  <h3 class="text-base font-semibold text-red-800">發生錯誤</h3>
-                  <div id="errorMessage" class="mt-2 text-sm text-red-700 font-medium"></div>
-                  <div class="mt-5 bg-white p-4 rounded-lg border border-red-200">
-                    <p class="font-semibold text-red-800 mb-3 flex items-center gap-2">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      常見原因
-                    </p>
-                    <ul class="space-y-2 text-sm text-red-700">
-                      <li class="flex items-start gap-2">
-                        <span class="text-red-500 mt-0.5">•</span>
-                        <span>伺服器未啟用 CORS（跨來源資源共享）</span>
-                      </li>
-                      <li class="flex items-start gap-2">
-                        <span class="text-red-500 mt-0.5">•</span>
-                        <span>使用 file:// 協議而非本地伺服器開啟</span>
-                      </li>
-                      <li class="flex items-start gap-2">
-                        <span class="text-red-500 mt-0.5">•</span>
-                        <span>網路連線或伺服器問題</span>
-                      </li>
-                      <li class="flex items-start gap-2">
-                        <span class="text-red-500 mt-0.5">•</span>
-                        <span>API endpoint 暫時無法使用</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="text-center mt-12 pb-8">
-      <div class="max-w-4xl mx-auto">
-        <div class="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 rounded-xl p-6 border-2 border-blue-200 shadow-md">
-          <p class="text-gray-800 font-bold mb-2 text-lg">Neurosynth ML Decoding Project</p>
-          <p class="text-sm text-gray-600 mb-3">使用 AJAX 和 Tailwind CSS 建立 · 資料來源：Neurosynth API</p>
-          <div class="mt-4 flex items-center justify-center gap-6 text-xs text-gray-500">
-            <span class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm">
-              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-              </svg>
-              <span class="font-semibold">Vite</span>
-            </span>
-            <span class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm">
-              <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
-              </svg>
-              <span class="font-semibold">Tailwind CSS</span>
-            </span>
-          </div>
-        </div>
-      </div>
-    </footer>
-  </div>
+    </section>
+  </main>
 
   <script>
-    // State management
-    let isLoading = false;
-    let allTerms = [];
-    let filteredTerms = [];
-    let currentView = 'grid'; // 'grid' or 'json'
-    const API_URL = 'https://hpc.psy.ntu.edu.tw:5000/terms';
+    // ======== 小工具 ========
+    const $ = (id) => document.getElementById(id);
 
-    // DOM elements
-    const fetchBtn = document.getElementById('fetchBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const copyBtn = document.getElementById('copyBtn');
-    const viewToggle = document.getElementById('viewToggle');
-    const viewToggleText = document.getElementById('viewToggleText');
-    const btnText = document.getElementById('btnText');
-    const loading = document.getElementById('loading');
-    const errorDisplay = document.getElementById('errorDisplay');
-    const errorMessage = document.getElementById('errorMessage');
-    const statusBar = document.getElementById('statusBar');
-    const statusIcon = document.getElementById('statusIcon');
-    const statusText = document.getElementById('statusText');
-    const statusDetail = document.getElementById('statusDetail');
-    const statusBadge = document.getElementById('statusBadge');
-    const termsGrid = document.getElementById('termsGrid');
-    const jsonOutput = document.getElementById('jsonOutput');
-    const searchSection = document.getElementById('searchSection');
-    const searchInput = document.getElementById('searchInput');
-    const sortSelect = document.getElementById('sortSelect');
-    const filterInfo = document.getElementById('filterInfo');
-    const termCount = document.getElementById('termCount');
+    function setGlobalStatus(msg) { $("globalStatus").textContent = "狀態：" + msg; }
+    function setStatus(id, msg, isErr=false){
+      const el = $(id);
+      el.textContent = (isErr? "錯誤：" : "狀態：") + msg;
+      el.className = 'text-sm ' + (isErr? 'text-red-600' : 'text-slate-500');
+    }
 
-    // Fetch terms using AJAX
-    async function fetchTerms() {
-      if (isLoading) return;
-      
-      isLoading = true;
-      fetchBtn.disabled = true;
-      btnText.textContent = '載入中...';
-      
-      // Show loading state
-      loading.classList.remove('hidden');
-      termsGrid.classList.add('hidden');
-      jsonOutput.classList.add('hidden');
-      errorDisplay.classList.add('hidden');
-      statusBar.classList.add('hidden');
-      searchSection.classList.add('hidden');
+    function api(url) {
+      // 接受 JSON 或 HTML 兩種情況
+      return fetch(url, { headers: { 'Accept': 'application/json,text/html;q=0.9,*/*;q=0.8' } });
+    }
 
-      try {
-        const startTime = performance.now();
-        
-        const response = await fetch(API_URL);
-        const endTime = performance.now();
-        const duration = Math.round(endTime - startTime);
-        
-        // Update status bar
-        updateStatusBar(response.status, response.statusText, duration);
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    // 嘗試從 JSON 結構抽出陣列
+    function guessArray(data){
+      if (Array.isArray(data)) return data;
+      if (data == null) return [];
+      if (Array.isArray(data.items)) return data.items;
+      if (Array.isArray(data.results)) return data.results;
+      if (Array.isArray(data.data)) return data.data;
+      // 若是物件 map：{ term: count, ... }
+      if (typeof data === 'object') {
+        const entries = Object.entries(data);
+        if (entries.every(([k,v]) => typeof v === 'number' || typeof v === 'string' || typeof v === 'object')) {
+          return entries.map(([k,v]) => ({ term: k, value: v }));
         }
-
-        const data = await response.json();
-        
-        // Store terms
-        allTerms = Array.isArray(data) ? data : (data.terms || []);
-        filteredTerms = [...allTerms];
-        
-        // Display results
-        displayTermsGrid();
-        jsonOutput.textContent = JSON.stringify(data, null, 2);
-        searchSection.classList.remove('hidden');
-        updateFilterInfo();
-
-      } catch (error) {
-        displayError(error);
-      } finally {
-        isLoading = false;
-        fetchBtn.disabled = false;
-        btnText.textContent = '重新載入';
-        loading.classList.add('hidden');
       }
+      return [];
     }
 
-    // Display terms in grid view
-    function displayTermsGrid() {
-      termsGrid.innerHTML = '';
-      
-      if (filteredTerms.length === 0) {
-        termsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">沒有找到符合的術語</div>';
-        termsGrid.classList.remove('hidden');
-        return;
-      }
+    // 將任何值安全轉成字串
+    const S = (x) => (x == null ? '' : String(x));
 
-      filteredTerms.forEach(term => {
-        const termCard = document.createElement('div');
-        termCard.className = 'bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:shadow-lg transition-all duration-200 cursor-pointer group';
-        termCard.innerHTML = `
-          <div class="flex items-center justify-between">
-            <span class="font-medium text-gray-800 group-hover:text-blue-600 transition-colors">${escapeHtml(term)}</span>
-            <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-            </svg>
-          </div>
-        `;
-        
-        // Copy term on click
-        termCard.addEventListener('click', () => {
-          copyToClipboard(term);
-          termCard.classList.add('border-green-500', 'bg-green-50');
-          setTimeout(() => {
-            termCard.classList.remove('border-green-500', 'bg-green-50');
-          }, 1000);
-        });
-        
-        termsGrid.appendChild(termCard);
-      });
-      
-      termsGrid.classList.remove('hidden');
-      termCount.textContent = `${filteredTerms.length} 個術語`;
-      termCount.classList.remove('hidden');
+    // 解析 HTML 表格為列資料（通用備援）
+    function parseHtmlTable(html){
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const trs = Array.from(doc.querySelectorAll('tbody tr'));
+      return trs.map(tr => Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim()));
     }
 
-    // Filter and sort terms
-    function filterAndSortTerms() {
-      const searchTerm = searchInput.value.toLowerCase().trim();
-      const sortOption = sortSelect.value;
-      
-      // Filter
-      filteredTerms = allTerms.filter(term => 
-        term.toLowerCase().includes(searchTerm)
-      );
-      
-      // Sort
-      if (sortOption === 'az') {
-        filteredTerms.sort((a, b) => a.localeCompare(b));
-      } else if (sortOption === 'za') {
-        filteredTerms.sort((a, b) => b.localeCompare(a));
-      }
-      
-      displayTermsGrid();
-      updateFilterInfo();
+    // 渲染通用表格列
+    function renderRows(tbodyId, rowsHtml){ $(tbodyId).innerHTML = rowsHtml.join(''); }
+
+    // ======== /terms ========
+    function buildTermsUrl(){
+      const base = $("apiBase").value.replace(/\/$/, '');
+      const u = new URL(base + '/terms');
+      const prefix = $("termsPrefix").value.trim();
+      const limit = $("termsLimit").value.trim();
+      const offset = $("termsOffset").value.trim();
+      if (prefix) u.searchParams.set('prefix', prefix);
+      if (limit) u.searchParams.set('limit', limit);
+      if (offset) u.searchParams.set('offset', offset);
+      return u.toString();
     }
 
-    // Update filter info
-    function updateFilterInfo() {
-      if (searchInput.value.trim()) {
-        filterInfo.textContent = `顯示 ${filteredTerms.length} / ${allTerms.length} 個術語`;
-      } else {
-        filterInfo.textContent = `共 ${allTerms.length} 個可搜尋術語`;
-      }
-    }
-
-    // Toggle view between grid and JSON
-    function toggleView() {
-      if (currentView === 'grid') {
-        currentView = 'json';
-        termsGrid.classList.add('hidden');
-        jsonOutput.classList.remove('hidden');
-        searchSection.classList.add('hidden');
-        viewToggleText.textContent = '顯示術語';
-      } else {
-        currentView = 'grid';
-        termsGrid.classList.remove('hidden');
-        jsonOutput.classList.add('hidden');
-        searchSection.classList.remove('hidden');
-        viewToggleText.textContent = '顯示 JSON';
-      }
-    }
-
-    // Escape HTML to prevent XSS
-    function escapeHtml(text) {
-      const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-      };
-      return text.replace(/[&<>"']/g, m => map[m]);
-    }
-
-    // Display error
-    function displayError(error) {
-      errorMessage.textContent = error.message || String(error);
-      errorDisplay.classList.remove('hidden');
-      termsGrid.classList.add('hidden');
-      jsonOutput.classList.add('hidden');
-      
-      statusIcon.innerHTML = '<span class="text-3xl">❌</span>';
-      statusText.textContent = '請求失敗';
-      statusDetail.textContent = error.message;
-      statusBadge.innerHTML = '<span class="bg-red-100 text-red-800 px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm">Error</span>';
-      statusBar.classList.remove('hidden');
-    }
-
-    // Update status bar
-    function updateStatusBar(status, statusText, duration) {
-      const isSuccess = status >= 200 && status < 300;
-      
-      statusIcon.innerHTML = isSuccess 
-        ? '<span class="text-3xl">✅</span>' 
-        : '<span class="text-3xl">⚠️</span>';
-      
-      document.getElementById('statusText').textContent = `HTTP ${status} ${statusText}`;
-      statusDetail.textContent = `回應時間: ${duration}ms`;
-      
-      statusBadge.innerHTML = isSuccess
-        ? '<span class="bg-green-100 text-green-800 px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm">Success</span>'
-        : '<span class="bg-yellow-100 text-yellow-800 px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm">Warning</span>';
-      
-      statusBar.classList.remove('hidden');
-    }
-
-    // Clear output
-    function clearOutput() {
-      termsGrid.innerHTML = '';
-      termsGrid.classList.add('hidden');
-      jsonOutput.textContent = '';
-      jsonOutput.classList.add('hidden');
-      errorDisplay.classList.add('hidden');
-      statusBar.classList.add('hidden');
-      searchSection.classList.add('hidden');
-      loading.classList.remove('hidden');
-      allTerms = [];
-      filteredTerms = [];
-      searchInput.value = '';
-      sortSelect.value = 'default';
-      termCount.classList.add('hidden');
-    }
-
-    // Copy to clipboard
-    async function copyToClipboard(text = null) {
-      const contentToCopy = text || (currentView === 'json' ? jsonOutput.textContent : filteredTerms.join('\n'));
-      
-      if (!contentToCopy) return;
-
+    async function onTerms(e){
+      e?.preventDefault();
+      const url = buildTermsUrl();
+      setStatus('status-terms', '請求中… ' + url);
+      setGlobalStatus('/terms 請求中');
+      $('btn-terms').disabled = true;
       try {
-        await navigator.clipboard.writeText(contentToCopy);
-        
-        const originalText = copyBtn.innerHTML;
-        copyBtn.innerHTML = `
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-          已複製
-        `;
-        copyBtn.classList.add('text-green-400');
-        
-        setTimeout(() => {
-          copyBtn.innerHTML = originalText;
-          copyBtn.classList.remove('text-green-400');
-        }, 2000);
+        const resp = await api(url);
+        const ct = resp.headers.get('content-type') || '';
+        if (!resp.ok) { setStatus('status-terms', `HTTP ${resp.status} ${resp.statusText}`, true); return; }
+        if (ct.includes('application/json')){
+          const data = await resp.json();
+          const arr = guessArray(data);
+          const rows = arr.map((x,i)=>{
+            // x 可能是字串或物件
+            const term = x.term || x.name || (typeof x === 'string' ? x : (x[0] || ''));
+            const weight = x.weight || x.score || x.count || x.value || '';
+            return `<tr class="hover:bg-slate-100 transition"><td class="px-3 py-2">${i+1}</td><td class="px-3 py-2">${S(term)}</td><td class="px-3 py-2 text-right">${S(weight)}</td></tr>`;
+          });
+          renderRows('rows-terms', rows);
+          setStatus('status-terms', '完成（JSON）');
+        } else {
+          const text = await resp.text();
+          const table = parseHtmlTable(text); // [[#, term, weight], ...]
+          const rows = table.map(cells => `<tr class="hover:bg-slate-100 transition">`
+            + `<td class="px-3 py-2">${S(cells[0])}</td>`
+            + `<td class="px-3 py-2">${S(cells[1])}</td>`
+            + `<td class="px-3 py-2 text-right">${S(cells[2])}</td>`
+            + `</tr>`);
+          renderRows('rows-terms', rows);
+          setStatus('status-terms', '完成（HTML 解析）');
+        }
       } catch (err) {
-        console.error('Failed to copy:', err);
+        setStatus('status-terms', (err?.message || err) + '（可能是 CORS、網路或伺服器問題）', true);
+      } finally {
+        $('btn-terms').disabled = false;
+        setGlobalStatus('就緒');
       }
     }
 
-    // Event listeners
-    fetchBtn.addEventListener('click', fetchTerms);
-    clearBtn.addEventListener('click', clearOutput);
-    copyBtn.addEventListener('click', () => copyToClipboard());
-    viewToggle.addEventListener('click', toggleView);
-    searchInput.addEventListener('input', filterAndSortTerms);
-    sortSelect.addEventListener('change', filterAndSortTerms);
+    // ======== /terms/<t1> ========
+    function buildAssocUrl(){
+      const base = $("apiBase").value.replace(/\/$/, '');
+      const t1 = $("assocT1").value.trim();
+      const u = new URL(base + '/terms/' + encodeURIComponent(t1));
+      const limit = $("assocLimit").value.trim();
+      if (limit) u.searchParams.set('limit', limit);
+      return u.toString();
+    }
 
-    // Initial fetch on page load
-    fetchTerms();
+    async function onAssoc(e){
+      e?.preventDefault();
+      const t1 = $('assocT1').value.trim();
+      $("show-assocT1").textContent = t1 || '（未填）';
+      if (!t1) { setStatus('status-assoc', '請輸入 t1', true); return; }
+      const url = buildAssocUrl();
+      setStatus('status-assoc', '請求中… ' + url);
+      setGlobalStatus('/terms/<t1> 請求中');
+      $('btn-assoc').disabled = true;
+      try{
+        const resp = await api(url);
+        const ct = resp.headers.get('content-type') || '';
+        if (!resp.ok) { setStatus('status-assoc', `HTTP ${resp.status} ${resp.statusText}`, true); return; }
+        if (ct.includes('application/json')){
+          const data = await resp.json();
+          const arr = guessArray(data);
+          const rows = arr.map((x,i)=>{
+            const term = x.term || x.name || x.related || (typeof x === 'string' ? x : (x[0] || ''));
+            const weight = x.weight || x.score || x.count || x.value || '';
+            return `<tr class="hover:bg-slate-100 transition"><td class="px-3 py-2">${i+1}</td><td class="px-3 py-2">${S(term)}</td><td class="px-3 py-2 text-right">${S(weight)}</td></tr>`;
+          });
+          renderRows('rows-assoc', rows);
+          setStatus('status-assoc', '完成（JSON）');
+        } else {
+          const text = await resp.text();
+          const table = parseHtmlTable(text); // [[#, related_term, weight], ...]
+          const rows = table.map(cells => `<tr class="hover:bg-slate-100 transition">`
+            + `<td class="px-3 py-2">${S(cells[0])}</td>`
+            + `<td class="px-3 py-2">${S(cells[1])}</td>`
+            + `<td class="px-3 py-2 text-right">${S(cells[2])}</td>`
+            + `</tr>`);
+          renderRows('rows-assoc', rows);
+          setStatus('status-assoc', '完成（HTML 解析）');
+        }
+      } catch(err){
+        setStatus('status-assoc', (err?.message || err) + '（可能是 CORS、網路或伺服器問題）', true);
+      } finally {
+        $('btn-assoc').disabled = false;
+        setGlobalStatus('就緒');
+      }
+    }
+
+    // ======== /query/<q_string>/studies ========
+    function buildQueryUrl(){
+      const base = $("apiBase").value.replace(/\/$/, '');
+      const q = $("queryStr").value.trim();
+      const u = new URL(base + '/query/' + encodeURIComponent(q) + '/studies');
+      const limit = $("queryLimit").value.trim();
+      if (limit) u.searchParams.set('limit', limit);
+      return u.toString();
+    }
+
+    async function onQuery(e){
+      e?.preventDefault();
+      const q = $('queryStr').value.trim();
+      if (!q) { setStatus('status-query', '請輸入 q_string', true); return; }
+      const url = buildQueryUrl();
+      setStatus('status-query', '請求中… ' + url);
+      setGlobalStatus('/query/<q_string>/studies 請求中');
+      $('btn-query').disabled = true;
+      try{
+        const resp = await api(url);
+        const ct = resp.headers.get('content-type') || '';
+        if (!resp.ok) { setStatus('status-query', `HTTP ${resp.status} ${resp.statusText}`, true); return; }
+        if (ct.includes('application/json')){
+          const data = await resp.json();
+          const arr = guessArray(data);
+          const rows = arr.map((x,i)=>{
+            const id = x.study_id || x.id || x.pmid || x.study || '';
+            const title = x.title || x.summary || x.abstract || '';
+            const score = x.score || x.weight || x.value || '';
+            return `<tr class="hover:bg-slate-100 transition">`
+              + `<td class="px-3 py-2">${i+1}</td>`
+              + `<td class="px-3 py-2">${S(id)}</td>`
+              + `<td class="px-3 py-2">${S(title)}</td>`
+              + `<td class="px-3 py-2 text-right">${S(score)}</td>`
+              + `</tr>`;
+          });
+          renderRows('rows-query', rows);
+          setStatus('status-query', '完成（JSON）');
+        } else {
+          const text = await resp.text();
+          const table = parseHtmlTable(text); // [[#, id, title, score], ...]（依對方表格為準）
+          const rows = table.map(cells => `<tr class="hover:bg-slate-100 transition">`
+            + `<td class="px-3 py-2">${S(cells[0])}</td>`
+            + `<td class="px-3 py-2">${S(cells[1])}</td>`
+            + `<td class="px-3 py-2">${S(cells[2])}</td>`
+            + `<td class="px-3 py-2 text-right">${S(cells[3])}</td>`
+            + `</tr>`);
+          renderRows('rows-query', rows);
+          setStatus('status-query', '完成（HTML 解析）');
+        }
+      } catch(err){
+        setStatus('status-query', (err?.message || err) + '（可能是 CORS、網路或伺服器問題）', true);
+      } finally {
+        $('btn-query').disabled = false;
+        setGlobalStatus('就緒');
+      }
+    }
+
+    // ======== Tab 切換 ========
+    function activateTab(name){
+      document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById('tab-' + name);
+      if (target) target.classList.add('active');
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('ring', 'ring-white'));
+      document.querySelector(`[data-tab="${name}"]`)?.classList.add('ring','ring-white');
+      location.hash = name;
+    }
+
+    function initTabs(){
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+      });
+      const hash = location.hash.replace('#','');
+      if (['terms','assoc','query'].includes(hash)) activateTab(hash);
+    }
+
+    // ======== 綁定事件 ========
+    document.getElementById('form-terms').addEventListener('submit', onTerms);
+    document.getElementById('form-assoc').addEventListener('submit', onAssoc);
+    document.getElementById('form-query').addEventListener('submit', onQuery);
+
+    // ======== 預載容易理解的例子 ========
+    window.addEventListener('DOMContentLoaded', () => {
+      initTabs();
+      // 示例參數
+      $('termsPrefix').value = '';
+      $('assocT1').value = 'posterior_cingulate';
+      $('queryStr').value = 'posterior_cingulate AND NOT ventromedial_prefrontal';
+      // 預先查一次 /terms/<t1>，方便示範
+      onAssoc(new Event('submit'));
+    });
   </script>
 </body>
 </html>
-
