@@ -20,7 +20,7 @@
       <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 class="text-2xl md:text-3xl font-bold">🧠 MIL Terms Explorer</h1>
-          <p class="text-white/90">公開前端，用 AJAX 方式呼叫 API：<code>/terms</code>、<code>/terms/&lt;t1&gt;</code>、<code>/query/&lt;q_string&gt;/studies</code></p>
+          <p class="text-white/90"><code>/terms</code>、<code>/terms/&lt;t1&gt;</code>、<code>/query/&lt;q_string&gt;/studies</code></p>
         </div>
         <div class="bg-white/15 rounded-xl px-3 py-2 text-sm flex items-center gap-2">
           <span>API Base URL：</span>
@@ -39,35 +39,14 @@
     <section id="tab-terms" class="tab active">
       <div class="bg-white rounded-xl shadow p-5 space-y-3">
         <h2 class="text-xl font-semibold">/terms：所有可用詞彙</h2>
-        <form id="form-terms" class="grid grid-cols-1 sm:grid-cols-6 gap-3 items-end">
-          <div class="sm:col-span-3">
-            <label class="block text-sm text-slate-600 mb-1">（可選）過濾前綴 prefix</label>
-            <input id="termsPrefix" placeholder="例如：post、hippo（留空=不過濾）" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
-          </div>
-          <div>
-            <label class="block text-sm text-slate-600 mb-1">（可選）limit</label>
-            <input id="termsLimit" type="number" min="1" placeholder="如 100" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
-          </div>
-          <div>
-            <label class="block text-sm text-slate-600 mb-1">（可選）offset</label>
-            <input id="termsOffset" type="number" min="0" placeholder="如 0" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
-          </div>
-          <button id="btn-terms" class="sm:col-span-1 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white shadow hover:bg-indigo-500 active:bg-indigo-700 transition disabled:opacity-60">查詢</button>
-        </form>
-        <p id="status-terms" class="text-sm text-slate-500">狀態：尚未查詢</p>
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead class="bg-indigo-600 text-white">
-              <tr>
-                <th class="px-3 py-2 text-left">#</th>
-                <th class="px-3 py-2 text-left">Term</th>
-                <th class="px-3 py-2 text-right">Weight / Count</th>
-              </tr>
-            </thead>
-            <tbody id="rows-terms" class="[&>tr:nth-child(odd)]:bg-slate-50"></tbody>
-          </table>
+        <div class="flex justify-between items-center">
+          <p class="text-sm text-slate-600">點擊任一詞彙可複製到剪貼簿</p>
+          <button id="btn-terms" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white shadow hover:bg-indigo-500 active:bg-indigo-700 transition disabled:opacity-60">🔄 重新載入</button>
         </div>
-        <div class="text-sm text-slate-500">提示：若後端回傳 HTML（表格），本頁也會自動解析。</div>
+        <p id="status-terms" class="text-sm text-slate-500">狀態：尚未查詢</p>
+        <div id="rows-terms" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 mt-4">
+          <!-- Terms 將以卡片形式顯示在這裡 -->
+        </div>
       </div>
     </section>
 
@@ -75,30 +54,17 @@
     <section id="tab-assoc" class="tab">
       <div class="bg-white rounded-xl shadow p-5 space-y-3">
         <h2 class="text-xl font-semibold">/terms/&lt;t1&gt;：查詢與 t1 關聯的詞彙</h2>
-        <form id="form-assoc" class="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
-          <div class="sm:col-span-3">
+        <form id="form-assoc" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+          <div class="sm:col-span-2">
             <label class="block text-sm text-slate-600 mb-1">Term t1（必填）</label>
             <input id="assocT1" required placeholder="例如：posterior_cingulate" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
           </div>
-          <div>
-            <label class="block text-sm text-slate-600 mb-1">（可選）limit</label>
-            <input id="assocLimit" type="number" min="1" placeholder="如 100" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
-          </div>
-          <button id="btn-assoc" class="sm:col-span-1 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white shadow hover:bg-indigo-500 active:bg-indigo-700 transition disabled:opacity-60">查詢</button>
+          <button id="btn-assoc" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white shadow hover:bg-indigo-500 active:bg-indigo-700 transition disabled:opacity-60">查詢</button>
         </form>
-        <p class="text-slate-600">顯示：與 <span id="show-assocT1" class="font-semibold">（未填）</span> 的相關詞彙</p>
+        <p class="text-slate-600">查詢詞彙：<span id="show-assocT1" class="font-semibold">（未填）</span></p>
         <p id="status-assoc" class="text-sm text-slate-500">狀態：尚未查詢</p>
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead class="bg-indigo-600 text-white">
-              <tr>
-                <th class="px-3 py-2 text-left">#</th>
-                <th class="px-3 py-2 text-left">Related Term</th>
-                <th class="px-3 py-2 text-right">Weight / Score</th>
-              </tr>
-            </thead>
-            <tbody id="rows-assoc" class="[&>tr:nth-child(odd)]:bg-slate-50"></tbody>
-          </table>
+        <div id="rows-assoc" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+          <!-- 關聯詞彙將以卡片形式顯示在這裡 -->
         </div>
       </div>
     </section>
@@ -107,31 +73,17 @@
     <section id="tab-query" class="tab">
       <div class="bg-white rounded-xl shadow p-5 space-y-3">
         <h2 class="text-xl font-semibold">/query/&lt;q_string&gt;/studies：邏輯搜尋</h2>
-        <form id="form-query" class="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
-          <div class="sm:col-span-3">
+        <form id="form-query" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+          <div class="sm:col-span-2">
             <label class="block text-sm text-slate-600 mb-1">q_string（必填）</label>
             <input id="queryStr" required placeholder="例如：posterior_cingulate AND NOT ventromedial_prefrontal" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
           </div>
-          <div>
-            <label class="block text-sm text-slate-600 mb-1">（可選）limit</label>
-            <input id="queryLimit" type="number" min="1" placeholder="如 100" class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/60" />
-          </div>
-          <button id="btn-query" class="sm:col-span-1 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white shadow hover:bg-indigo-500 active:bg-indigo-700 transition disabled:opacity-60">查詢</button>
+          <button id="btn-query" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white shadow hover:bg-indigo-500 active:bg-indigo-700 transition disabled:opacity-60">查詢</button>
         </form>
-        <p class="text-slate-600">查詢語句將自動 URL encode，例：空白、AND/OR/NOT 皆會被正確編碼。</p>
+        <p class="text-slate-600 text-sm">查詢語句支援 AND/OR/NOT 邏輯運算子，將自動進行 URL encode。</p>
         <p id="status-query" class="text-sm text-slate-500">狀態：尚未查詢</p>
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead class="bg-indigo-600 text-white">
-              <tr>
-                <th class="px-3 py-2 text-left">#</th>
-                <th class="px-3 py-2 text-left">Study ID</th>
-                <th class="px-3 py-2 text-left">Title / Summary</th>
-                <th class="px-3 py-2 text-right">Score</th>
-              </tr>
-            </thead>
-            <tbody id="rows-query" class="[&>tr:nth-child(odd)]:bg-slate-50"></tbody>
-          </table>
+        <div id="rows-query" class="space-y-4 mt-4">
+          <!-- 研究結果將以卡片形式顯示在這裡 -->
         </div>
       </div>
     </section>
@@ -157,8 +109,13 @@
     function guessArray(data){
       if (Array.isArray(data)) return data;
       if (data == null) return [];
-      if (Array.isArray(data.items)) return data.items;
+      // 優先檢查 data.terms（這是 /terms 的 API 格式）
+      if (Array.isArray(data.terms)) return data.terms;
+      // 檢查 data.related（這是 /terms/<t1> 的 API 格式）
+      if (Array.isArray(data.related)) return data.related;
+      // 檢查 data.results（這是 /query/<q_string>/studies 的 API 格式）
       if (Array.isArray(data.results)) return data.results;
+      if (Array.isArray(data.items)) return data.items;
       if (Array.isArray(data.data)) return data.data;
       // 若是物件 map：{ term: count, ... }
       if (typeof data === 'object') {
@@ -173,6 +130,19 @@
     // 將任何值安全轉成字串
     const S = (x) => (x == null ? '' : String(x));
 
+    // 複製到剪貼簿的功能
+    function copyToClipboard(text, element) {
+      navigator.clipboard.writeText(text).then(() => {
+        const originalHTML = element.innerHTML;
+        element.innerHTML = '<div class="text-white font-semibold text-center">✓ 已複製！</div>';
+        setTimeout(() => {
+          element.innerHTML = originalHTML;
+        }, 1000);
+      }).catch(err => {
+        console.error('複製失敗：', err);
+      });
+    }
+
     // 解析 HTML 表格為列資料（通用備援）
     function parseHtmlTable(html){
       const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -186,14 +156,7 @@
     // ======== /terms ========
     function buildTermsUrl(){
       const base = $("apiBase").value.replace(/\/$/, '');
-      const u = new URL(base + '/terms');
-      const prefix = $("termsPrefix").value.trim();
-      const limit = $("termsLimit").value.trim();
-      const offset = $("termsOffset").value.trim();
-      if (prefix) u.searchParams.set('prefix', prefix);
-      if (limit) u.searchParams.set('limit', limit);
-      if (offset) u.searchParams.set('offset', offset);
-      return u.toString();
+      return base + '/terms';
     }
 
     async function onTerms(e){
@@ -209,24 +172,36 @@
         if (ct.includes('application/json')){
           const data = await resp.json();
           const arr = guessArray(data);
-          const rows = arr.map((x,i)=>{
-            // x 可能是字串或物件
-            const term = x.term || x.name || (typeof x === 'string' ? x : (x[0] || ''));
-            const weight = x.weight || x.score || x.count || x.value || '';
-            return `<tr class="hover:bg-slate-100 transition"><td class="px-3 py-2">${i+1}</td><td class="px-3 py-2">${S(term)}</td><td class="px-3 py-2 text-right">${S(weight)}</td></tr>`;
+          const cards = arr.map((x,i)=>{
+            // x 現在是字串（因為 data.terms 是字串陣列）
+            const term = (typeof x === 'string') ? x : (x.term || x.name || x[0] || '');
+            const weight = (typeof x === 'object') ? (x.weight || x.score || x.count || x.value || '') : '';
+            return `<div class="group relative bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer" 
+                    onclick="copyToClipboard('${S(term).replace(/'/g, "\\'")}', this)" 
+                    title="點擊複製：${S(term)}">
+              <div class="text-white font-semibold text-center break-words">${S(term)}</div>
+              ${weight ? `<div class="text-white/70 text-xs text-center mt-2">${S(weight)}</div>` : ''}
+              <div class="absolute inset-0 bg-white/0 group-hover:bg-white/10 rounded-xl transition-all duration-300"></div>
+            </div>`;
           });
-          renderRows('rows-terms', rows);
-          setStatus('status-terms', '完成（JSON）');
+          $('rows-terms').innerHTML = cards.join('');
+          setStatus('status-terms', `完成（共 ${arr.length} 個詞彙）`);
         } else {
           const text = await resp.text();
           const table = parseHtmlTable(text); // [[#, term, weight], ...]
-          const rows = table.map(cells => `<tr class="hover:bg-slate-100 transition">`
-            + `<td class="px-3 py-2">${S(cells[0])}</td>`
-            + `<td class="px-3 py-2">${S(cells[1])}</td>`
-            + `<td class="px-3 py-2 text-right">${S(cells[2])}</td>`
-            + `</tr>`);
-          renderRows('rows-terms', rows);
-          setStatus('status-terms', '完成（HTML 解析）');
+          const cards = table.map((cells, i) => {
+            const term = cells[1] || cells[0] || '';
+            const weight = cells[2] || '';
+            return `<div class="group relative bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer" 
+                    onclick="copyToClipboard('${S(term).replace(/'/g, "\\'")}', this)" 
+                    title="點擊複製：${S(term)}">
+              <div class="text-white font-semibold text-center break-words">${S(term)}</div>
+              ${weight ? `<div class="text-white/70 text-xs text-center mt-2">${S(weight)}</div>` : ''}
+              <div class="absolute inset-0 bg-white/0 group-hover:bg-white/10 rounded-xl transition-all duration-300"></div>
+            </div>`;
+          });
+          $('rows-terms').innerHTML = cards.join('');
+          setStatus('status-terms', `完成（HTML 解析，共 ${table.length} 個詞彙）`);
         }
       } catch (err) {
         setStatus('status-terms', (err?.message || err) + '（可能是 CORS、網路或伺服器問題）', true);
@@ -240,10 +215,7 @@
     function buildAssocUrl(){
       const base = $("apiBase").value.replace(/\/$/, '');
       const t1 = $("assocT1").value.trim();
-      const u = new URL(base + '/terms/' + encodeURIComponent(t1));
-      const limit = $("assocLimit").value.trim();
-      if (limit) u.searchParams.set('limit', limit);
-      return u.toString();
+      return base + '/terms/' + encodeURIComponent(t1);
     }
 
     async function onAssoc(e){
@@ -262,23 +234,40 @@
         if (ct.includes('application/json')){
           const data = await resp.json();
           const arr = guessArray(data);
-          const rows = arr.map((x,i)=>{
-            const term = x.term || x.name || x.related || (typeof x === 'string' ? x : (x[0] || ''));
-            const weight = x.weight || x.score || x.count || x.value || '';
-            return `<tr class="hover:bg-slate-100 transition"><td class="px-3 py-2">${i+1}</td><td class="px-3 py-2">${S(term)}</td><td class="px-3 py-2 text-right">${S(weight)}</td></tr>`;
+          const cards = arr.map((x,i)=>{
+            // x 是物件：{ term: "emotional", co_count: 726, jaccard: 0.283... }
+            const term = x.term || x.name || x.related || '';
+            const jaccard = x.jaccard ? x.jaccard.toFixed(4) : '';
+            const coCount = x.co_count || x.count || '';
+            return `<div class="group relative bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer" 
+                    onclick="copyToClipboard('${S(term).replace(/'/g, "\\'")}', this)" 
+                    title="點擊複製：${S(term)}">
+              <div class="text-white font-semibold text-center text-lg mb-2 break-words">${S(term)}</div>
+              <div class="text-white/90 text-xs space-y-1">
+                ${jaccard ? `<div class="flex justify-between"><span>Jaccard:</span><span class="font-mono">${jaccard}</span></div>` : ''}
+                ${coCount ? `<div class="flex justify-between"><span>共現次數:</span><span class="font-mono">${coCount}</span></div>` : ''}
+              </div>
+              <div class="absolute inset-0 bg-white/0 group-hover:bg-white/10 rounded-xl transition-all duration-300"></div>
+            </div>`;
           });
-          renderRows('rows-assoc', rows);
-          setStatus('status-assoc', '完成（JSON）');
+          $('rows-assoc').innerHTML = cards.join('');
+          setStatus('status-assoc', `完成（共 ${arr.length} 個關聯詞彙）`);
         } else {
           const text = await resp.text();
-          const table = parseHtmlTable(text); // [[#, related_term, weight], ...]
-          const rows = table.map(cells => `<tr class="hover:bg-slate-100 transition">`
-            + `<td class="px-3 py-2">${S(cells[0])}</td>`
-            + `<td class="px-3 py-2">${S(cells[1])}</td>`
-            + `<td class="px-3 py-2 text-right">${S(cells[2])}</td>`
-            + `</tr>`);
-          renderRows('rows-assoc', rows);
-          setStatus('status-assoc', '完成（HTML 解析）');
+          const table = parseHtmlTable(text);
+          const cards = table.map((cells, i) => {
+            const term = cells[1] || cells[0] || '';
+            const weight = cells[2] || '';
+            return `<div class="group relative bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer" 
+                    onclick="copyToClipboard('${S(term).replace(/'/g, "\\'")}', this)" 
+                    title="點擊複製：${S(term)}">
+              <div class="text-white font-semibold text-center text-lg mb-2 break-words">${S(term)}</div>
+              ${weight ? `<div class="text-white/90 text-xs text-center">${S(weight)}</div>` : ''}
+              <div class="absolute inset-0 bg-white/0 group-hover:bg-white/10 rounded-xl transition-all duration-300"></div>
+            </div>`;
+          });
+          $('rows-assoc').innerHTML = cards.join('');
+          setStatus('status-assoc', `完成（HTML 解析，共 ${table.length} 個關聯詞彙）`);
         }
       } catch(err){
         setStatus('status-assoc', (err?.message || err) + '（可能是 CORS、網路或伺服器問題）', true);
@@ -292,10 +281,7 @@
     function buildQueryUrl(){
       const base = $("apiBase").value.replace(/\/$/, '');
       const q = $("queryStr").value.trim();
-      const u = new URL(base + '/query/' + encodeURIComponent(q) + '/studies');
-      const limit = $("queryLimit").value.trim();
-      if (limit) u.searchParams.set('limit', limit);
-      return u.toString();
+      return base + '/query/' + encodeURIComponent(q) + '/studies';
     }
 
     async function onQuery(e){
@@ -313,30 +299,67 @@
         if (ct.includes('application/json')){
           const data = await resp.json();
           const arr = guessArray(data);
-          const rows = arr.map((x,i)=>{
-            const id = x.study_id || x.id || x.pmid || x.study || '';
-            const title = x.title || x.summary || x.abstract || '';
-            const score = x.score || x.weight || x.value || '';
-            return `<tr class="hover:bg-slate-100 transition">`
-              + `<td class="px-3 py-2">${i+1}</td>`
-              + `<td class="px-3 py-2">${S(id)}</td>`
-              + `<td class="px-3 py-2">${S(title)}</td>`
-              + `<td class="px-3 py-2 text-right">${S(score)}</td>`
-              + `</tr>`;
+          const cards = arr.map((x,i)=>{
+            // x 是物件：{ id, study_id, title, authors, journal, year, contrast_id }
+            const studyId = x.study_id || x.id || '';
+            const title = x.title || '';
+            const authors = x.authors || '';
+            const journal = x.journal || '';
+            const year = x.year || '';
+            const contrastId = x.contrast_id || '';
+            
+            return `<div class="bg-slate-50 rounded-xl p-5 shadow hover:shadow-lg transition-all duration-300 border border-slate-200 hover:border-indigo-300">
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <h3 class="text-lg font-semibold text-slate-800 flex-1">${S(title)}</h3>
+                <span class="text-sm font-mono bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full whitespace-nowrap">${S(year)}</span>
+              </div>
+              <div class="space-y-2 text-sm text-slate-600">
+                <div class="flex gap-2">
+                  <span class="font-semibold text-slate-700">作者：</span>
+                  <span class="flex-1">${S(authors)}</span>
+                </div>
+                <div class="flex gap-2">
+                  <span class="font-semibold text-slate-700">期刊：</span>
+                  <span class="flex-1 italic">${S(journal)}</span>
+                </div>
+                <div class="flex gap-2 items-center">
+                  <span class="font-semibold text-slate-700">Study ID：</span>
+                  <span class="font-mono text-indigo-600">${S(studyId)}</span>
+                  ${contrastId ? `<span class="text-slate-400">/ Contrast: ${S(contrastId)}</span>` : ''}
+                </div>
+              </div>
+            </div>`;
           });
-          renderRows('rows-query', rows);
-          setStatus('status-query', '完成（JSON）');
+          $('rows-query').innerHTML = cards.join('');
+          
+          // 顯示總數和應用的過濾器資訊
+          const count = data.count || arr.length;
+          const applied = data.applied || {};
+          const appliedInfo = Object.entries(applied)
+            .filter(([k,v]) => v === true)
+            .map(([k]) => k)
+            .join(', ') || '無';
+          setStatus('status-query', `完成（共 ${count} 筆結果，顯示 ${arr.length} 筆，已套用過濾：${appliedInfo}）`);
         } else {
           const text = await resp.text();
-          const table = parseHtmlTable(text); // [[#, id, title, score], ...]（依對方表格為準）
-          const rows = table.map(cells => `<tr class="hover:bg-slate-100 transition">`
-            + `<td class="px-3 py-2">${S(cells[0])}</td>`
-            + `<td class="px-3 py-2">${S(cells[1])}</td>`
-            + `<td class="px-3 py-2">${S(cells[2])}</td>`
-            + `<td class="px-3 py-2 text-right">${S(cells[3])}</td>`
-            + `</tr>`);
-          renderRows('rows-query', rows);
-          setStatus('status-query', '完成（HTML 解析）');
+          const table = parseHtmlTable(text);
+          const cards = table.map((cells, i) => {
+            const studyId = cells[1] || '';
+            const title = cells[2] || '';
+            const score = cells[3] || '';
+            return `<div class="bg-slate-50 rounded-xl p-5 shadow hover:shadow-lg transition-all duration-300 border border-slate-200 hover:border-indigo-300">
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <h3 class="text-lg font-semibold text-slate-800 flex-1">${S(title)}</h3>
+                ${score ? `<span class="text-sm font-mono bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">${S(score)}</span>` : ''}
+              </div>
+              <div class="text-sm text-slate-600">
+                <span class="font-semibold text-slate-700">Study ID：</span>
+                <span class="font-mono text-indigo-600">${S(studyId)}</span>
+              </div>
+            </div>`;
+          });
+          $('rows-query').innerHTML = cards.join('');
+          setStatus('status-query', `完成（HTML 解析，共 ${table.length} 筆結果）`);
         }
       } catch(err){
         setStatus('status-query', (err?.message || err) + '（可能是 CORS、網路或伺服器問題）', true);
@@ -365,7 +388,7 @@
     }
 
     // ======== 綁定事件 ========
-    document.getElementById('form-terms').addEventListener('submit', onTerms);
+    document.getElementById('btn-terms').addEventListener('click', onTerms);
     document.getElementById('form-assoc').addEventListener('submit', onAssoc);
     document.getElementById('form-query').addEventListener('submit', onQuery);
 
@@ -373,11 +396,10 @@
     window.addEventListener('DOMContentLoaded', () => {
       initTabs();
       // 示例參數
-      $('termsPrefix').value = '';
       $('assocT1').value = 'posterior_cingulate';
       $('queryStr').value = 'posterior_cingulate AND NOT ventromedial_prefrontal';
-      // 預先查一次 /terms/<t1>，方便示範
-      onAssoc(new Event('submit'));
+      // 預先查詢 /terms，讓使用者一進來就看到所有可用詞彙
+      onTerms();
     });
   </script>
 </body>
